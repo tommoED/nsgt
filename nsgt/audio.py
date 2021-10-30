@@ -73,7 +73,7 @@ class SndReader:
                     fnd = True                
         
         if not fnd:
-            ffmpeg = findfile('ffmpeg') or findfile('avconv')
+            ffmpeg = findfile('ffmpeg') or findfile('avconv') or findfile('ffmpeg.exe') or findfile('avconv.exe')
             if ffmpeg is not None:
                 pipe = sp.Popen([ffmpeg,'-i', fn,'-'],stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
                 fmtout = pipe.stderr.read()
