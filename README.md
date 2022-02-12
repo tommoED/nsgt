@@ -6,7 +6,7 @@ This project is a PyTorch implementation of the Nonstationary Gabor Transform an
 * Variable-Q scale with a frequency offset parameter, which can be seen in [Schörkhuber et al. 2014](https://www.researchgate.net/publication/274009051_A_Matlab_Toolbox_for_Efficient_Perfect_Reconstruction_Time-Frequency_Transforms_with_Log-Frequency_Resolution) and [Huang et al. 2015](https://www.researchgate.net/publication/292361602_A_Real-Time_Variable-Q_Non-Stationary_Gabor_Transform_for_Pitch_Shifting)
 * Minimum slice length suggestion for a given frequency scale
 
-This is the standalone version of the sliCQ transform used in https://github.com/sevagh/xumx-sliCQ
+This is the standalone version of the sliCQ transform used in https://github.com/sevagh/xumx-sliCQ. There is also an inactive branch, https://github.com/sevagh/nsgt/tree/feat/hpss-example, containing a demo of Harmonic/Percussive Source Separation with the sliCQT and NSGT.
 
 ## STFT vs. sliCQ spectrogram
 
