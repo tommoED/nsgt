@@ -1,5 +1,7 @@
 # PyTorch NSGT and sliCQ transforms
 
+> **NOTE**: this branch is based off of this [nsgt fork](https://github.com/sevagh/nsgt) by [@sevagh](https://github.com/sevagh).
+
 This project is a PyTorch implementation of the Nonstationary Gabor Transform and sliCQ Transform, based on [Balazs et al. 2011](http://ltfat.org/notes/ltfatnote018.pdf) and [Holighaus et al. 2012](https://arxiv.org/abs/1210.0084). It is forked from [the reference implementation](https://github.com/grrrr/nsgt) by Thomas Grill, with the following additions:
 * [PyTorch](https://github.com/pytorch/pytorch/) tensor implementation for both the NSGT and sliCQ transforms, resulting in faster performance and the capability to use them in GPU deep learning models
 * Bark scale based on the [Barktan formula](https://github.com/stephencwelch/Perceptual-Coding-In-Python/issues/3)
