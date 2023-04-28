@@ -1,7 +1,5 @@
 [build-system]
 requires = [
-    "cython",
-    "oldest-supported-numpy",
     "setuptools>=61",
 ]
 build-backend = "setuptools.build_meta"
@@ -16,7 +14,7 @@ maintainers = [
     { name = "Thomas Grill", email = "gr@grrrr.org" },
 ]
 license = { text = "Artistic License" }
-readme = "readme.txt"
+readme = "README.md"
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -28,6 +26,8 @@ classifiers = [
 requires-python = ">=3.7, <4"
 dependencies = [
     "numpy",
+    "torch",
+    "torchaudio",
 ]
 
 keywords = [
