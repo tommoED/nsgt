@@ -121,7 +121,10 @@ if args.output:
 
 if args.plot:
     print("Preparing plot")
+    import matplotlib
+    matplotlib.use('Agg')
     import matplotlib.pyplot as pl
+    
     # interpolate CQT to get a grid
     hf = -1 if args.real else len(c)//2
     if not args.matrixform:
@@ -132,6 +135,11 @@ if args.plot:
     np.log10(grid, out=grid)
     grid *= 20
     pmax = np.percentile(grid, 99.99)
-    pl.imshow(grid, aspect='auto', origin='lower', vmin=pmax-80, vmax=pmax)
+    duration = Ls/fs
+    pl.figure(figsize=(0.5*(duration),5))
+    pl.imshow(grid, aspect='auto', origin='lower', vmin=pmax-80, vmax=pmax, cmap='inferno')
+    pl.axis('off')
     pl.colorbar()
-    pl.show()
+    pl.savefig("spectrogram.png", bbox_inches='tight')
+    pl.close()
+
