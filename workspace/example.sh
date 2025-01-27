@@ -1,0 +1,1 @@
+python examples/spectrogram.py --scale=oct --bins=48 --fmin=20 --fmax=22050 --output=./drop.png ./drop.wav --plot --sllen=800 --trlen=300
