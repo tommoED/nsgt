@@ -17,104 +17,58 @@ import os.path
 import re
 import sys
 from functools import reduce
+from warnings import warn
+import torchaudio
+import torch
 
-try:
-    from scikits.audiolab import Sndfile, Format
-except:
-    Sndfile = None
-    
-def sndreader(sf, blksz=2**16, dtype=np.float32):
-    if dtype is float:
-        dtype = np.float64 # scikits.audiolab needs numpy types
+
+
+def sndreader(filepath, blksz=2**16, dtype=np.float32):
+    waveform, sample_rate = torchaudio.load(filepath)
+    num_frames = waveform.size(1)
     if blksz < 0:
-        blksz = sf.nframes
-    if sf.channels > 1: 
-        channels = lambda s: s.T
-    else:
-        channels = lambda s: s.reshape((1,-1))
-    for offs in range(0, sf.nframes, blksz):
-        data = sf.read_frames(min(sf.nframes-offs, blksz), dtype=dtype)
-        yield channels(data)
-    
-def sndwriter(sf, blkseq, maxframes=None):
-    written = 0
-    for b in blkseq:
-        b = b.T
-        if maxframes is not None: 
-            b = b[:maxframes-written]
-        sf.write_frames(b)
-        written += len(b)
+        blksz = num_frames
+    channels = waveform.size(0)
+    for offs in range(0, num_frames, blksz):
+        yield waveform[:, offs:offs + blksz].numpy().astype(dtype)
 
-def findfile(fn, path=os.environ['PATH'].split(os.pathsep), matchFunc=os.path.isfile):
-    for dirname in path:
-        candidate = os.path.join(dirname, fn)
-        if matchFunc(candidate):
-            return candidate
-    return None
-
+def sndwriter(filepath, waveform, sample_rate, format='wav'):
+    torchaudio.save(filepath, waveform, sample_rate, format=format)
 
 class SndReader:
     def __init__(self, fn, sr=None, chns=None, blksz=2**16, dtype=np.float32):
-        fnd = False
-                
-        if not fnd and (Sndfile is not None):
-            try:
-                sf = Sndfile(fn)
-            except IOError:
-                pass
+        self.waveform, self.samplerate = torchaudio.load(fn)
+        self.channels = self.waveform.size(0)
+        self.frames = self.waveform.size(1)
+        if sr and sr != self.samplerate:
+            self.waveform = torchaudio.transforms.Resample(orig_freq=self.samplerate, new_freq=sr)(self.waveform)
+            self.samplerate = sr
+        if chns and chns != self.channels:
+            original_channels = self.channels
+            if original_channels == 1 and chns == 2:
+                # Mono to stereo: duplicate the channel
+                self.waveform = self.waveform.repeat(2, 1)
+                warn("Converted mono audio to stereo by duplicating the channel.")
+            elif original_channels == 2 and chns == 1:
+                # Stereo to mono: average the channels
+                self.waveform = torch.mean(self.waveform, dim=0, keepdim=True)
+                warn("Converted stereo audio to mono by averaging the channels.")
             else:
-                if (sr is None or sr == sf.samplerate) and (chns is None or chns == sf.channels):
-                    # no resampling required
-                    self.channels = sf.channels
-                    self.samplerate = sf.samplerate
-                    self.frames = sf.nframes
+                raise ValueError(f"Unsupported channel conversion from {original_channels} to {chns}.")
                 
-                    self.rdr = sndreader(sf, blksz, dtype=dtype)
-                    fnd = True                
-        
-        if not fnd:
-            ffmpeg = findfile('ffmpeg') or findfile('avconv') or findfile('ffmpeg.exe') or findfile('avconv.exe')
-            if ffmpeg is not None:
-                pipe = sp.Popen([ffmpeg,'-i', fn,'-'],stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-                fmtout = pipe.stderr.read()
-                if (sys.version_info > (3, 0)):
-                    fmtout = fmtout.decode()
-                m = re.match(r"^(ffmpeg|avconv) version.*Duration: (\d\d:\d\d:\d\d.\d\d),.*Audio: (.+), (\d+) Hz, (.+), (.+), (\d+) kb/s", " ".join(fmtout.split('\n')))
-                if m is not None:
-                    self.samplerate = int(m.group(4)) if not sr else int(sr)
-                    self.channels = {'mono':1, '1 channels (FL+FR)':1, 'stereo':2}[m.group(5)] if not chns else chns
-                    dur = reduce(lambda x,y: x*60+y, list(map(float, m.group(2).split(':'))))
-                    self.frames = int(dur*self.samplerate)  # that's actually an estimation, because of potential resampling with round-off errors
-                    pipe = sp.Popen([ffmpeg,
-                        '-i', fn,
-                        '-f', 'f32le',
-                        '-acodec', 'pcm_f32le',
-                        '-ar', str(self.samplerate),
-                        '-ac', str(self.channels),
-                        '-'],
-    #                    bufsize=self.samplerate*self.channels*4*50,
-                        stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-                    def rdr():
-                        while True:
-                            data = pipe.stdout.read(blksz*4)
-                            if len(data) == 0:
-                                break
-                            yield np.fromstring(data, dtype=dtype).reshape((-1, self.channels)).T
-                    self.rdr = rdr()
-                    fnd = True                
-                
-        if not fnd:
-            raise IOError("Format not usable")
-        
+            self.rdr = sndreader(fn, blksz, dtype=dtype)
+
     def __call__(self):
         return self.rdr
 
-
 class SndWriter:
     def __init__(self, fn, samplerate, filefmt='wav', datafmt='pcm16', channels=1):
-        fmt = Format(filefmt, datafmt)
-        self.sf = Sndfile(fn, mode='w', format=fmt, channels=channels, samplerate=samplerate)
-        
+        self.fn = fn
+        self.samplerate = samplerate
+        self.filefmt = filefmt
+        self.channels = channels
+
     def __call__(self, sigblks, maxframes=None):
-        sndwriter(self.sf, sigblks, maxframes=None)
+        waveform = torch.cat([torch.from_numpy(b) for b in sigblks], dim=1)
+        sndwriter(self.fn, waveform, self.samplerate, format=self.filefmt)
 
