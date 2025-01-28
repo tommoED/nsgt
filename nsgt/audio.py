@@ -56,7 +56,7 @@ class SndReader:
             else:
                 raise ValueError(f"Unsupported channel conversion from {original_channels} to {chns}.")
                 
-            self.rdr = sndreader(fn, blksz, dtype=dtype)
+        self.rdr = sndreader(fn, blksz, dtype=dtype)
 
     def __call__(self):
         return self.rdr
