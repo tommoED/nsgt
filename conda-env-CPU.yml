@@ -7,14 +7,15 @@ channels:
 
 dependencies:
   - python=3.9
-  - numpy
-  - numba
+  - numpy<1.25
+  # - numba
   - scipy
   - pytorch==1.12.1
   - torchaudio==0.12.1
-  - cudatoolkit=11.6
+  - cpuonly
+  # - cudatoolkit=11.6
   - tqdm
-  - libsndfile
+  - pysoundfile
   - ffmpeg
   - pip
   - pip:
