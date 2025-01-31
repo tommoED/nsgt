@@ -58,7 +58,7 @@ class SndReader:
                 
         self.rdr = sndreader(fn, blksz, dtype=dtype)
 
-    def __call__(self):
+    def __call__(self) -> torch.Tensor:
         return self.rdr
 
 class SndWriter:
@@ -69,6 +69,13 @@ class SndWriter:
         self.channels = channels
 
     def __call__(self, sigblks, maxframes=None):
-        waveform = torch.cat([torch.from_numpy(b) for b in sigblks], dim=1)
-        sndwriter(self.fn, waveform, self.samplerate, format=self.filefmt)
+        if isinstance(sigblks, torch.Tensor):
+            waveform = sigblks
+            sndwriter(self.fn, waveform, self.samplerate, format=self.filefmt)
+        elif isinstance(sigblks, list[np.ndarray]):
+            waveform = torch.cat([torch.from_numpy(b) for b in sigblks], dim=1)
+            sndwriter(self.fn, waveform, self.samplerate, format=self.filefmt)
+        else:
+            raise ValueError("sigblks must be a torch.Tensor or a list of numpy arrays")
+
 
