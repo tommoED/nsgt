@@ -157,6 +157,6 @@ def nsigtf_sl(cseq, gd, wins, nn, Ls=None, real=False, reducedform=0, matrixform
 
 
 # non-sliced version
-def nsigtf(c, gd, wins, nn, Ls=None, real=False, reducedform=0, measurefft=False, multithreading=False, device="cpu"):
-    ret = nsigtf_sl(torch.unsqueeze(c, dim=0), gd, wins, nn, Ls=Ls, real=real, reducedform=reducedform, measurefft=measurefft, multithreading=multithreading, device=device)
+def nsigtf(c, gd, wins, nn, Ls=None, real=False, reducedform=0, matrixform=False, measurefft=False, multithreading=False, device="cpu"):
+    ret = nsigtf_sl(torch.unsqueeze(c, dim=0), gd, wins, nn, Ls=Ls, real=real, reducedform=reducedform, matrixform=matrixform, measurefft=measurefft, multithreading=multithreading, device=device)
     return torch.squeeze(ret, dim=0)
