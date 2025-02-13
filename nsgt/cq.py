@@ -74,8 +74,8 @@ class NSGT:
             self.channelize = lambda s: s
             self.unchannelize = lambda s: s
         else:
-            self.channelize = lambda s: (s,)
-            self.unchannelize = lambda s: s[0]
+            self.channelize = lambda s: torch.unsqueeze(s, dim=0)
+            self.unchannelize = lambda s: torch.squeeze(s, dim=0)
 
         # calculate shifts
         self.wins,self.nn = calcwinrange(self.g, rfbas, self.Ls, device=self.device)

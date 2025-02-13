@@ -19,7 +19,7 @@ from .util import chkM
 from .fft import fftp, ifftp
 
 
-def nsgtf_sl(f_slices, g, wins, nn, M=None, matrixform=False, real=False, reducedform=0, measurefft=False, multithreading=False, device="cpu"):
+def nsgtf_sl(f_slices, g, wins, nn, M=None, matrixform=False, real=False, reducedform=0, measurefft=False, multithreading=False, device="cpu") -> list[torch.Tensor]:
     M = chkM(M,g)
     dtype = g[0].dtype
     

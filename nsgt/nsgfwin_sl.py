@@ -43,6 +43,21 @@ import torch
 
 
 def nsgfwin(f, q, sr, Ls, sliced=True, min_win=4, Qvar=1, dowarn=True, dtype=np.float64, device="cpu"):
+    """
+    f: list of center frequencies
+    q: list of Q-factors
+    sr: sampling rate
+    Ls: length of signal
+    sliced: if True, use sliced windows, otherwise use non-sliced windows
+    min_win: minimum window length
+    Qvar: Q-factor variance
+
+    Returns:
+        g: list of window functions
+        rfbas: list of center frequencies
+        M: list of window lengths
+    """
+    
     nf = sr/2.
 
     lim = np.argmax(f > 0)
